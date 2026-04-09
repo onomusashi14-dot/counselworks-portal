@@ -2,10 +2,10 @@
  * src/App.tsx
  *
  * Entry point. Provides AuthContext, routes between LoginPage and portal.
- * All mock state replaced with real API hooks.
+ * Routing is driven entirely by auth state — never by window.location reloads.
  */
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { AuthContext, useAuthState } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -14,16 +14,22 @@ import { Portal } from './pages/Portal';
 export default function App() {
   const auth = useAuthState();
 
-  // Route: if no user and not loading → show login
-  if (!auth.loading && !auth.user) {
-    // Check path to avoid redirect loop
-    if (window.location.pathname !== '/login') {
-      window.location.pathname = '/login';
-      return null;
+  // Keep URL bar in sync with auth state (cosmetic only — no page reload)
+  useEffect(() => {
+    if (auth.loading) return;
+    if (auth.user && window.location.pathname === '/login') {
+      history.replaceState(null, '', '/');
+    } else if (!auth.user && window.location.pathname !== '/login') {
+      history.replaceState(null, '', '/login');
     }
+  }, [auth.user, auth.loading]);
+
+  // Route based on auth state, not URL
+  if (auth.loading) {
+    return null; // ProtectedRoute already shows a loading spinner
   }
 
-  if (window.location.pathname === '/login') {
+  if (!auth.user) {
     return (
       <AuthContext.Provider value={auth}>
         <LoginPage />

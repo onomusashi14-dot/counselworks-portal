@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { authApi, User } from '../api/auth';
-import { ApiError } from '../api/client';
+import { ApiError, setOnAuthFailure } from '../api/client';
 
 interface AuthState {
   user: User | null;
@@ -42,6 +42,9 @@ export function useAuthState(): AuthContextValue {
   const [state, setState] = useState<AuthState>({ user: null, loading: true, error: null });
 
   useEffect(() => {
+    // Register callback so API layer can force-logout on unrecoverable 401
+    setOnAuthFailure(() => setState({ user: null, loading: false, error: null }));
+
     authApi.me()
       .then(({ user }) => setState({ user, loading: false, error: null }))
       .catch(() => setState({ user: null, loading: false, error: null }));
@@ -62,7 +65,7 @@ export function useAuthState(): AuthContextValue {
   const logout = useCallback(async () => {
     await authApi.logout().catch(() => {});
     setState({ user: null, loading: false, error: null });
-    window.location.href = '/login';
+    // No window.location — App.tsx re-renders to LoginPage on state change
   }, []);
 
   const activeMembership = resolveActiveMembership(state.user);

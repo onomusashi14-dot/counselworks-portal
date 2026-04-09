@@ -27,7 +27,7 @@ export function ProtectedRoute({ children }: Props) {
   }
 
   if (!user) {
-    window.location.href = '/login';
+    // App.tsx handles routing to LoginPage based on auth state
     return null;
   }
 

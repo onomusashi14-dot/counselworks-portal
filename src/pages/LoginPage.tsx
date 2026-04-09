@@ -21,7 +21,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      window.location.href = '/';
+      // No navigation needed — App.tsx re-renders on auth state change
     } catch (err: any) {
       setError(err.message ?? 'Invalid email or password.');
     } finally {

@@ -32,6 +32,13 @@ export function getAccessToken(): string | null {
   return _accessToken;
 }
 
+// Callback for signaling auth failure to the React layer
+let _onAuthFailure: (() => void) | null = null;
+
+export function setOnAuthFailure(cb: () => void): void {
+  _onAuthFailure = cb;
+}
+
 // ─── ERROR CLASS ────────────────────────────────────────────────────────────
 export class ApiError extends Error {
   constructor(public code: string, message: string, public status: number) {
@@ -97,11 +104,9 @@ async function request<T>(path: string, options: RequestInit = {}, isRetry = fal
         return request<T>(path, options, true);
       }
     }
-    // Refresh failed or already retried — redirect to login
+    // Refresh failed or already retried — clear tokens and signal auth failure
     clearTokens();
-    if (!window.location.pathname.startsWith('/login')) {
-      window.location.href = '/login';
-    }
+    _onAuthFailure?.();
     const body = await res.json().catch(() => ({}));
     throw new ApiError(
       body?.error?.code ?? 'UNAUTHENTICATED',
