@@ -39,4 +39,11 @@ function resolveApiBase(): string {
 
 export const API_BASE: string = resolveApiBase();
 
+/**
+ * AUTH_BASE — root URL for /auth/* endpoints (login, logout, me, refresh).
+ * Auth routes live at the API root, NOT under /firms/:firmId/portal.
+ * Derived by stripping the /firms/... suffix from API_BASE.
+ */
+export const AUTH_BASE: string = API_BASE.replace(/\/firms\/.*$/, '');
+
 export const IS_PRODUCTION: boolean = !!import.meta.env.PROD;

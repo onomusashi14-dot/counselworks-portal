@@ -15,9 +15,10 @@ interface SidebarProps {
     needs_attention: number;
     blocked: number;
   };
-  // True once the portfolio fetch completes. While false we render "—"
-  // placeholders so the strip never claims "0 on track" during loading.
   countsLoaded?: boolean;
+  userName?: string;
+  userRole?: string;
+  onLogout?: () => void;
 }
 
 const NAV_ITEMS: { key: NavKey; label: string }[] = [
@@ -27,17 +28,6 @@ const NAV_ITEMS: { key: NavKey; label: string }[] = [
   { key: "drafts", label: "Drafts Inbox" },
   { key: "documents", label: "Documents" },
 ];
-
-const iconCommon: CSSProperties & {
-  strokeWidth?: number;
-  strokeLinecap?: "round";
-  strokeLinejoin?: "round";
-} = {
-  width: 16,
-  height: 16,
-  stroke: "currentColor",
-  fill: "none",
-};
 
 function NavIcon({ name }: { name: NavKey }) {
   const common = {
@@ -84,13 +74,35 @@ function NavIcon({ name }: { name: NavKey }) {
   return null;
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function formatRole(role?: string): string {
+  if (!role) return "Attorney";
+  return role
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function Sidebar({
   current,
   onNavigate,
   counts,
   countsLoaded = true,
+  userName = "James Mitchell",
+  userRole,
+  onLogout,
 }: SidebarProps) {
-  const fmt = (n: number) => (countsLoaded ? String(n) : '—');
+  const fmt = (n: number) => (countsLoaded ? String(n) : "—");
+  const initials = getInitials(userName);
+  const displayRole = formatRole(userRole);
+
   return (
     <aside
       style={{
@@ -255,7 +267,7 @@ export default function Sidebar({
             fontWeight: 700,
           }}
         >
-          JM
+          {initials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
@@ -265,34 +277,44 @@ export default function Sidebar({
               color: "var(--white)",
             }}
           >
-            James Mitchell
+            {userName}
           </div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-            Attorney
+            {displayRole}
           </div>
         </div>
-        <button
-          title="Logout"
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "rgba(255,255,255,0.5)",
-            cursor: "pointer",
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {onLogout && (
+          <button
+            title="Sign out"
+            onClick={onLogout}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "rgba(255,255,255,0.5)",
+              cursor: "pointer",
+              padding: 4,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.9)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+            }}
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-          </svg>
-        </button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+          </button>
+        )}
       </div>
     </aside>
   );

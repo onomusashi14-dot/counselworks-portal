@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
+import LoginPage from "./components/auth/LoginPage";
 import PageShell from "./components/layout/PageShell";
 import { type NavKey } from "./components/layout/Sidebar";
 import MorningBrief from "./components/morning-brief/MorningBrief";
@@ -11,12 +13,11 @@ import { useApi } from "./hooks/useApi";
 import { getMorningBrief } from "./api/portalApi";
 import type { HealthStatus } from "./data/mockData";
 
-export default function App() {
+function Portal() {
+  const { user, logout } = useAuth();
   const [page, setPage] = useState<NavKey>("morning");
   const [openCaseId, setOpenCaseId] = useState<string | null>(null);
 
-  // One shared fetch drives the sidebar counts. Individual pages fetch
-  // their own data so switching tabs doesn't wait on this query.
   const { data: brief } = useApi((signal) => getMorningBrief(signal));
 
   const counts = useMemo(() => {
@@ -69,8 +70,55 @@ export default function App() {
       onNavigate={onNavigate}
       counts={counts}
       countsLoaded={!!brief}
+      userName={user?.fullName ?? undefined}
+      userRole={undefined}
+      onLogout={logout}
     >
       {content}
     </PageShell>
+  );
+}
+
+function AppContent() {
+  const { user, loading, login } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--canvas)",
+        }}
+      >
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            border: "3px solid var(--border)",
+            borderTopColor: "var(--mustard)",
+            borderRadius: "50%",
+            animation: "cw-spin 0.6s linear infinite",
+          }}
+        />
+        <style>{`@keyframes cw-spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage onLogin={login} />;
+  }
+
+  return <Portal />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

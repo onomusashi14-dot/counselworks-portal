@@ -11,6 +11,9 @@ interface PageShellProps {
     blocked: number;
   };
   countsLoaded?: boolean;
+  userName?: string;
+  userRole?: string;
+  onLogout?: () => void;
   children: ReactNode;
 }
 
@@ -19,6 +22,9 @@ export default function PageShell({
   onNavigate,
   counts,
   countsLoaded,
+  userName,
+  userRole,
+  onLogout,
   children,
 }: PageShellProps) {
   return (
@@ -34,6 +40,9 @@ export default function PageShell({
         onNavigate={onNavigate}
         counts={counts}
         countsLoaded={countsLoaded}
+        userName={userName}
+        userRole={userRole}
+        onLogout={onLogout}
       />
       <main style={{ flex: 1, padding: "32px 40px", overflowX: "auto" }}>
         <div
